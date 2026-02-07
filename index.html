@@ -1,73 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
         body { 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
-            background-color: black; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-            font-family: "Trebuchet MS", sans-serif;
+            margin: 0; padding: 0; overflow: hidden; 
+            background-color: #050505; color: white;
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            cursor: pointer; /* Подсказка, что нужно кликнуть */
         }
         
+        /* Слой шума */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            opacity: 0.12; pointer-events: none; z-index: 20;
+        }
+
         .slide {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 2.5s ease-in-out;
             z-index: 1;
+            filter: brightness(0.4) contrast(1.2) saturate(0.7);
         }
 
         .active { opacity: 1; }
 
-        .overlay {
-            position: relative;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 0px 0px 20px rgba(0,0,0,1), 2px 2px 10px rgba(0,0,0,0.8);
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 40px;
-            border-radius: 20px;
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.9) 100%);
+            z-index: 5;
         }
 
-        .main-title { font-size: 60px; font-weight: bold; margin-bottom: 10px; }
-        .time-gmt { font-size: 24px; opacity: 0.9; margin-bottom: 5px; }
-        .session-timer { font-size: 18px; opacity: 0.7; }
+        .bottom-interface {
+            position: absolute;
+            bottom: 8%; left: 5%; right: 5%;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            z-index: 10;
+        }
 
-        /* Скрытый плеер */
-        #bg-music { display: none; }
+        .main-title {
+            font-size: 50px; font-weight: 700;
+            letter-spacing: 3px; line-height: 1;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .accent-line {
+            width: 80px; height: 3px;
+            background-color: #e5a824; margin: 12px 0;
+        }
+
+        .status-block {
+            font-size: 18px; color: #e5a824;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .details { font-size: 13px; opacity: 0.5; margin-top: 4px; }
+
+        .hints-wrapper {
+            flex: 0 1 450px; text-align: right;
+            border-right: 2px solid #e5a824;
+            padding-right: 20px; margin-bottom: 5px;
+        }
+
+        .hint-label { font-size: 12px; color: #e5a824; opacity: 0.8; margin-bottom: 5px; }
+
+        #hint-text {
+            font-size: 16px; color: #cccccc;
+            line-height: 1.4; transition: opacity 0.5s ease;
+            min-height: 45px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Кнопка "Включить звук" (исчезнет после клика) */
+        #mute-warning {
+            position: fixed; top: 20px; width: 100%;
+            text-align: center; font-size: 12px; color: #e5a824;
+            z-index: 100; letter-spacing: 2px;
+            animation: pulse 1s infinite;
+        }
     </style>
 </head>
-<body>
+<body onclick="startMusic()">
+
+    <div id="mute-warning">НАЖМИТЕ В ЛЮБОМ МЕСТЕ ДЛЯ АКТИВАЦИИ СИСТЕМ</div>
+    <div id="slideshow"></div>
+    <div class="vignette"></div>
+
     <audio id="bg-music" loop>
-        <source src="music.mp3" type="audio/mpeg">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="slideshow"></div>
+    <div class="bottom-interface">
+        <div class="status-wrapper">
+            <div class="main-title">ПОИСК РЕЙДА</div>
+            <div class="accent-line"></div>
+            <div id="session-counter" class="status-block">ЗАГРУЗКА ДАННЫХ: 0 СЕК.</div>
+            <div id="gmt-time" class="details">00:00:00 (GMT+10)</div>
+        </div>
 
-    <div class="overlay">
-        <div class="main-title">Поиск рейда</div>
-        <div id="gmt-time" class="time-gmt">00:00:00 (GMT+10)</div>
-        <div id="session-counter" class="session-timer">Загрузка: 0 сек.</div>
+        <div class="hints-wrapper">
+            <div class="hint-label">СОВЕТ:</div>
+            <div id="hint-text">Подготовка снаряжения...</div>
+        </div>
     </div>
 
     <script>
-        const images = ["2.jpg", "4.jpg", "89.jpg", "90.jpg", "8.jpg", "6.jpg", "5.jpg", "ml.jpg"];
-        const container = document.getElementById('slideshow');
+        // --- МУЗЫКА ---
+        function startMusic() {
+            const music = document.getElementById('bg-music');
+            music.play();
+            music.volume = 0.4; // Громкость 40%
+            document.getElementById('mute-warning').style.display = 'none';
+        }
 
-        images.forEach((img, index) => {
+        // --- КАРТИНКИ ---
+        const images = ["2.jpg", "4.jpg", "89.jpg", "90.jpg", "8.jpg", "6.jpg", "5.jpg", "ml.jpg"];
+        
+        // --- ПОДСКАЗКИ ---
+        const hints = [
+            "Проверяй патронник. Один выстрел может решить исход боя.",
+            "Не жалей денег на качественные патроны. Броня врага не вечна.",
+            "Слышишь шум? Замри. Возможно, ты уже на прицеле.",
+            "Дикие могут быть опасны даже с ржавым ружьем.",
+            "Используй медицину только в укрытии. Перевязка на открытом месте — смерть.",
+            "Твое снаряжение — это лишь инструмент. Главное — информация."
+        ];
+
+        const container = document.getElementById('slideshow');
+        images.forEach((img) => {
             const div = document.createElement('div');
             div.className = 'slide';
             div.style.backgroundImage = `url('${img}')`;
@@ -84,25 +158,20 @@
             do { next = Math.floor(Math.random() * slides.length); } while (next === current);
             current = next;
             slides[current].classList.add('active');
-        }, 5000);
+        }, 7000);
 
-        // --- ЛОГИКА МУЗЫКИ ---
-        const music = document.getElementById('bg-music');
-        music.volume = 0.5; // Громкость от 0.0 до 1.0
+        let hintIndex = 0;
+        const hintElem = document.getElementById('hint-text');
+        function rotateHints() {
+            hintElem.style.opacity = 0;
+            setTimeout(() => {
+                hintIndex = (hintIndex + 1) % hints.length;
+                hintElem.innerText = hints[hintIndex];
+                hintElem.style.opacity = 1;
+            }, 600);
+        }
+        setInterval(rotateHints, 8000);
 
-        // Пытаемся запустить музыку сразу
-        document.addEventListener('click', () => {
-            music.play();
-        });
-
-        // Для GMod: пытаемся запустить при любом движении или входе
-        window.onload = () => {
-            music.play().catch(() => {
-                console.log("Автовоспроизведение заблокировано. Нужен клик.");
-            });
-        };
-
-        // --- ЛОГИКА ВРЕМЕНИ ---
         const startTime = Date.now();
         function updateStatus() {
             const now = new Date();
@@ -110,7 +179,7 @@
             const nd = new Date(utc + (3600000 * 10));
             document.getElementById('gmt-time').innerHTML = nd.toLocaleTimeString() + " (GMT+10)";
             const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('session-counter').innerHTML = "Загрузка: " + elapsedSeconds + " сек.";
+            document.getElementById('session-counter').innerHTML = "ЗАГРУЗКА ДАННЫХ: " + elapsedSeconds + " СЕК.";
         }
         setInterval(updateStatus, 1000);
         updateStatus();
