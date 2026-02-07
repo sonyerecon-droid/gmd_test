@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <style>
-        body { margin: 0; overflow: hidden; background: black; }
+        body { margin: 0; padding: 0; overflow: hidden; background-color: black; }
+        
         .slide {
             position: absolute;
             width: 100%;
@@ -10,35 +12,57 @@
             background-size: cover;
             background-position: center;
             opacity: 0;
-            transition: opacity 1s ease-in-out;
+            transition: opacity 1.5s ease-in-out; /* Плавная смена */
         }
+
         .active { opacity: 1; }
+
+        /* Текст в углу, чтобы понимать, что экран не завис */
+        .loading-text {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
+    <div class="loading-text">Загрузка сервера...</div>
     <div id="slideshow"></div>
 
     <script>
-        // Сюда вставь ссылки на свои картинки
+        // ВАЖНО: Напиши здесь точные названия своих файлов, которые ты загрузил на GitHub
         const images = [
-            "https://github.com/sonyerecon-droid/gmd_test/blob/main/1.jpg",
+            "1.jpg",
+            "2.jpg",
+            "3.jpg"
         ];
 
         const container = document.getElementById('slideshow');
-        images.forEach((url, index) => {
+
+        // Генерируем слайды
+        images.forEach((imgName, index) => {
             const div = document.createElement('div');
             div.className = 'slide' + (index === 0 ? ' active' : '');
-            div.style.backgroundImage = `url('${url}')`;
+            // Формируем прямую ссылку на твой GitHub Pages
+            div.style.backgroundImage = `url('${imgName}')`;
             container.appendChild(div);
         });
 
         let current = 0;
         const slides = document.querySelectorAll('.slide');
-        setInterval(() => {
-            slides[current].classList.remove('active');
-            current = (current + 1) % slides.length;
-            slides[current].classList.add('active');
-        }, 5000); // 5000 мс = 5 секунд
+
+        if (slides.length > 1) {
+            setInterval(() => {
+                slides[current].classList.remove('active');
+                current = (current + 1) % slides.length;
+                slides[current].classList.add('active');
+            }, 5000); // Меняем каждые 5 секунд
+        }
     </script>
 </body>
 </html>
