@@ -12,6 +12,8 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            color: white;
+            font-family: "Trebuchet MS", sans-serif;
         }
         
         .slide {
@@ -30,26 +32,32 @@
 
         /* Контейнер для текста по центру */
         .overlay {
+            position: relative;
             text-align: center;
-            color: white;
-            font-family: "Trebuchet MS", sans-serif;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            text-shadow: 2px 2px 15px rgba(0,0,0,0.9);
+            letter-spacing: 3px;
+            text-shadow: 0px 0px 20px rgba(0,0,0,1), 2px 2px 10px rgba(0,0,0,0.8);
             z-index: 10;
-            pointer-events: none; /* Чтобы текст не мешал кликам, если нужно */
+            background: rgba(0, 0, 0, 0.3); /* Легкая подложка для читаемости */
+            padding: 40px;
+            border-radius: 20px;
         }
 
-        .title {
+        .main-title {
             font-size: 60px;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
-        .time {
-            font-size: 30px;
+        .time-gmt {
+            font-size: 24px;
             opacity: 0.9;
-            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .session-timer {
+            font-size: 18px;
+            opacity: 0.7;
         }
     </style>
 </head>
@@ -57,18 +65,16 @@
     <div id="slideshow"></div>
 
     <div class="overlay">
-        <div class="title">загрузка лута</div>
-        <div id="clock" class="time">00:00:00</div>
+        <div class="main-title">Загрузка лута</div>
+        <div id="gmt-time" class="time-gmt">00:00:00 (GMT+10)</div>
+        <div id="session-counter" class="session-timer">Прошло 0 сек.</div>
     </div>
 
     <script>
-        const images = [
-            "2.jpg", "4.jpg", "89.jpg", "90.jpg", 
-            "8.jpg", "6.jpg", "5.jpg", "ml.jpg"
-        ];
-
+        const images = ["2.jpg", "4.jpg", "89.jpg", "90.jpg", "8.jpg", "6.jpg", "5.jpg", "ml.jpg"];
         const container = document.getElementById('slideshow');
 
+        // Рендер слайдов
         images.forEach((img, index) => {
             const div = document.createElement('div');
             div.className = 'slide';
@@ -80,9 +86,8 @@
         let current = Math.floor(Math.random() * slides.length);
         slides[current].classList.add('active');
 
-        // Смена картинок
+        // Смена фонов
         setInterval(() => {
-            if (slides.length < 2) return;
             slides[current].classList.remove('active');
             let next;
             do { next = Math.floor(Math.random() * slides.length); } while (next === current);
@@ -90,22 +95,28 @@
             slides[current].classList.add('active');
         }, 5000);
 
-        // Функция для времени GMT+10
-        function updateTime() {
+        // --- ЛОГИКА ВРЕМЕНИ И ТАЙМЕРА ---
+
+        const startTime = Date.now();
+
+        function updateStatus() {
+            // 1. Время GMT+10
             const now = new Date();
-            // Получаем UTC время и добавляем 10 часов
-            const offset = 10;
-            const gmt10 = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (offset * 3600000));
+            // Смещение GMT+10 в минутах (10 * 60)
+            const gmt10Offset = 10 * 60; 
+            // Получаем время UTC и добавляем смещение
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const nd = new Date(utc + (3600000 * 10));
             
-            const hours = String(gmt10.getHours()).padStart(2, '0');
-            const minutes = String(gmt10.getMinutes()).padStart(2, '0');
-            const seconds = String(gmt10.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('gmt-time').innerHTML = nd.toLocaleTimeString() + " (GMT+10)";
+
+            // 2. Отсчет времени с начала загрузки
+            const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('session-counter').innerHTML = "Загрузка: " + elapsedSeconds + " сек.";
         }
 
-        setInterval(updateTime, 1000);
-        updateTime(); // Запуск сразу
+        setInterval(updateStatus, 1000);
+        updateStatus(); // Сразу запускаем при старте
     </script>
 </body>
 </html>
