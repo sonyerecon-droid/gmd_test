@@ -11,17 +11,18 @@
             overflow: hidden; 
             background-color: #050505; 
             color: white;
-            font-family: 'Oswald', sans-serif; /* Похож на шрифт из EFT */
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
         }
         
-        /* Эффект зернистости (Noise) поверх всего */
+        /* Эффект шума */
         body::after {
             content: "";
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.15;
+            opacity: 0.12;
             pointer-events: none;
             z-index: 20;
         }
@@ -29,72 +30,96 @@
         .slide {
             position: absolute;
             top: 0; left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background-size: cover;
             background-position: center;
             opacity: 0;
             transition: opacity 2s ease-in-out;
             z-index: 1;
-            filter: brightness(0.6) contrast(1.1); /* Мрачный стиль */
+            filter: brightness(0.5) contrast(1.2) saturate(0.8);
         }
 
         .active { opacity: 1; }
 
-        /* Виньетка (затемнение по краям) */
         .vignette {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.9) 100%);
+            background: radial-gradient(circle, transparent 30%, rgba(0,0,0,0.85) 100%);
             z-index: 5;
         }
 
-        /* Контейнер в стиле EFT (снизу слева/центра) */
-        .overlay {
+        /* Основной контейнер интерфейса */
+        .bottom-interface {
             position: absolute;
-            bottom: 10%;
+            bottom: 8%;
             left: 5%;
-            text-align: left;
-            text-transform: uppercase;
+            right: 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
             z-index: 10;
         }
 
-        .main-title {
-            font-size: 54px;
-            font-weight: 700;
-            letter-spacing: 4px;
-            color: #ffffff;
-            margin-bottom: -5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        /* Левая часть: Статус и время */
+        .status-wrapper {
+            flex: 0 0 auto;
         }
 
-        /* Оранжевая полоска как в интерфейсе */
+        .main-title {
+            font-size: 50px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+
         .accent-line {
-            width: 100px;
-            height: 4px;
+            width: 80px;
+            height: 3px;
             background-color: #e5a824;
-            margin: 10px 0;
+            margin: 12px 0;
         }
 
         .status-block {
-            font-size: 20px;
-            letter-spacing: 2px;
-            color: #e5a824; /* Фирменный оранжевый */
+            font-size: 18px;
+            color: #e5a824;
+            letter-spacing: 1px;
             animation: pulse 2s infinite ease-in-out;
         }
 
         .details {
-            font-size: 14px;
-            opacity: 0.6;
-            margin-top: 5px;
-            color: #ccc;
+            font-size: 13px;
+            opacity: 0.5;
+            margin-top: 4px;
+        }
+
+        /* Правая часть: Подсказки */
+        .hints-wrapper {
+            flex: 0 1 450px; /* Ограничиваем ширину подсказок */
+            text-align: right;
+            border-right: 2px solid #e5a824;
+            padding-right: 20px;
+            margin-bottom: 5px;
+        }
+
+        .hint-label {
+            font-size: 12px;
+            color: #e5a824;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        #hint-text {
+            font-size: 16px;
+            color: #cccccc;
+            line-height: 1.4;
+            transition: opacity 0.5s ease;
+            min-height: 45px;
         }
 
         @keyframes pulse {
-            0% { opacity: 0.6; }
+            0%, 100% { opacity: 0.5; }
             50% { opacity: 1; }
-            100% { opacity: 0.6; }
         }
     </style>
 </head>
@@ -102,19 +127,36 @@
     <div id="slideshow"></div>
     <div class="vignette"></div>
 
-    <div class="overlay">
-        <div class="main-title">ПОИСК РЕЙДА</div>
-        <div class="accent-line"></div>
-        <div id="session-counter" class="status-block">ЗАГРУЗКА ДАННЫХ: 0 СЕК.</div>
-        <div id="gmt-time" class="details">МЕСТНОЕ ВРЕМЯ: 00:00:00 (GMT+10)</div>
+    <div class="bottom-interface">
+        <div class="status-wrapper">
+            <div class="main-title">ПОИСК РЕЙДА</div>
+            <div class="accent-line"></div>
+            <div id="session-counter" class="status-block">ЗАГРУЗКА ДАННЫХ: 0 СЕК.</div>
+            <div id="gmt-time" class="details">00:00:00 (GMT+10)</div>
+        </div>
+
+        <div class="hints-wrapper">
+            <div class="hint-label">СОВЕТ:</div>
+            <div id="hint-text">Подготовка снаряжения...</div>
+        </div>
     </div>
 
     <script>
-        // Добавьте свои пути к картинкам здесь
+        // --- КАРТИНКИ ---
         const images = ["2.jpg", "4.jpg", "89.jpg", "90.jpg", "8.jpg", "6.jpg", "5.jpg", "ml.jpg"];
-        const container = document.getElementById('slideshow');
+        
+        // --- ТВОИ ПОДСКАЗКИ (Вписывай сюда любые) ---
+        const hints = [
+            "Проверяй патронник. Один выстрел может решить исход боя.",
+            "Не жалей денег на качественные патроны. Броня врага не вечна.",
+            "Слышишь шум? Замри. Возможно, ты уже на прицеле.",
+            "Групповой рейд повышает шансы на выживание, но делить лут придется на всех.",
+            "Используй медицину только в укрытии. Перевязка на открытом месте — смерть.",
+            "Твое снаряжение — это лишь инструмент. Главное — информация."
+        ];
 
-        images.forEach((img, index) => {
+        const container = document.getElementById('slideshow');
+        images.forEach((img) => {
             const div = document.createElement('div');
             div.className = 'slide';
             div.style.backgroundImage = `url('${img}')`;
@@ -125,23 +167,37 @@
         let current = Math.floor(Math.random() * slides.length);
         slides[current].classList.add('active');
 
+        // Смена фонов (раз в 7 сек)
         setInterval(() => {
             slides[current].classList.remove('active');
             let next;
             do { next = Math.floor(Math.random() * slides.length); } while (next === current);
             current = next;
             slides[current].classList.add('active');
-        }, 6000);
+        }, 7000);
 
+        // --- ЛОГИКА ПОДСКАЗОК ---
+        let hintIndex = 0;
+        const hintElem = document.getElementById('hint-text');
+
+        function rotateHints() {
+            hintElem.style.opacity = 0;
+            setTimeout(() => {
+                hintIndex = (hintIndex + 1) % hints.length;
+                hintElem.innerText = hints[hintIndex];
+                hintElem.style.opacity = 1;
+            }, 600);
+        }
+        setInterval(rotateHints, 8000); // Смена подсказки каждые 8 секунд
+
+        // --- ВРЕМЯ И ТАЙМЕР ---
         const startTime = Date.now();
-
         function updateStatus() {
             const now = new Date();
             const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
             const nd = new Date(utc + (3600000 * 10));
             
-            document.getElementById('gmt-time').innerHTML = "МЕСТНОЕ ВРЕМЯ: " + nd.toLocaleTimeString() + " (GMT+10)";
-
+            document.getElementById('gmt-time').innerHTML = nd.toLocaleTimeString() + " (GMT+10)";
             const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById('session-counter').innerHTML = "ЗАГРУЗКА ДАННЫХ: " + elapsedSeconds + " СЕК.";
         }
