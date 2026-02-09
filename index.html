@@ -3,166 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;700&display=swap');
+        /* Шрифт, похожий на Stratum2 (используется в CS:GO) */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700&display=swap');
 
-        body { 
-            margin: 0; padding: 0; overflow: hidden; 
-            background-color: #050505; color: white;
-            font-family: 'Oswald', sans-serif; text-transform: uppercase;
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background-color: #1a1b1e;
+            /* Фоновый паттерн с оружием (замени на свою картинку, если есть) */
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://wallpaperaccess.com/full/1556041.jpg');
+            background-size: cover;
+            font-family: 'Roboto', sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; color: white;
         }
 
-        /* Фоновое изображение (Локация) */
-        .background-wrap {
-            position: fixed; width: 100%; height: 100%;
-            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('map_bg.jpg'); 
-            background-size: cover; 
-            background-position: center;
-            z-index: -1;
-            filter: brightness(0.4) contrast(1.1);
-            transition: background-image 2s ease-in-out;
+        /* Центральный контейнер */
+        .loading-modal {
+            width: 800px;
+            background-color: rgba(30, 34, 38, 0.95);
+            border: 1px solid #3c4146;
+            display: flex; flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
 
-        /* Виньетка и шум */
-        .overlay-fx {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.9) 100%);
-            pointer-events: none; z-index: 5;
-        }
-        
-        .overlay-fx::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.1;
+        /* Верхняя часть с лого и текстом */
+        .content-top {
+            display: flex;
+            padding: 0;
+            border-bottom: 4px solid #1e2226;
         }
 
-        /* Верхний заголовок */
-        .header-title {
-            position: absolute; top: 50px; width: 100%;
-            text-align: center; font-size: 32px; letter-spacing: 6px;
-            font-weight: 700; z-index: 10;
-            text-shadow: 0 0 15px rgba(0,0,0,0.5);
-        }
-
-        /* Контейнер информации о карте (справа) */
-        .map-info {
-            position: absolute;
-            top: 20%; right: 8%;
-            width: 380px; z-index: 10;
-        }
-
+        /* Левая часть (Логотип и карта) */
         .map-preview {
-            width: 100%; 
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 50%;
+            height: 350px;
+            background: #23272b url('https://vignette.wikia.nocookie.net/cswiki/images/5/5e/Map_de_dust2.jpg') center/cover;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
         }
 
-        .map-name { font-size: 28px; margin-top: 25px; color: #fff; letter-spacing: 2px; }
-        
-        .map-description {
-            font-size: 14px; text-transform: none; color: #999;
-            line-height: 1.5; margin-top: 12px; font-weight: 300;
-            border-left: 2px solid #e5a824; padding-left: 15px;
+        .csgo-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 70px; font-weight: 700;
+            color: #f3ad18; /* Фирменный желтый */
+            text-shadow: 3px 3px 0px #222;
         }
 
-        /* Нижняя часть: Загрузка */
-        .loading-section {
-            position: absolute; bottom: 12%; width: 100%;
-            display: flex; flex-direction: column; align-items: center; z-index: 15;
+        /* Правая часть (Описание режима) */
+        .map-details {
+            width: 50%; padding: 30px;
+            background-color: #2d3238;
+            box-sizing: border-box;
         }
 
-        .loading-status-top { color: #666; font-size: 13px; letter-spacing: 2px; margin-bottom: 8px; }
-
-        .progress-container { 
-            width: 350px; height: 3px; background: rgba(255,255,255,0.05); 
-            position: relative; overflow: hidden;
-        }
-        .progress-bar { 
-            width: 35%; height: 100%; background: #e5a824; 
-            box-shadow: 0 0 15px rgba(229, 168, 36, 0.6); 
+        .mode-title {
+            font-size: 24px; font-weight: 700;
+            letter-spacing: 2px; border-bottom: 1px solid #4a4f55;
+            padding-bottom: 10px; margin-bottom: 15px;
         }
 
-        .loading-label { color: #e5a824; font-size: 14px; margin-top: 15px; opacity: 0.8; }
-        .timer { font-size: 32px; color: #fff; font-weight: 400; margin-top: 5px; }
-
-        .back-btn { 
-            margin-top: 40px; font-size: 24px; letter-spacing: 8px; 
-            color: #444; cursor: pointer; transition: color 0.3s;
+        .description-text {
+            font-size: 14px; line-height: 1.6; color: #cbd1d6;
         }
-        .back-btn:hover { color: #fff; }
 
-        /* Стартовый экран */
-        #click-overlay {
+        /* Нижняя полоса с советом */
+        .bottom-hint {
+            background-color: #1e2226;
+            padding: 15px 20px;
+            display: flex; align-items: center;
+            font-size: 13px; border-top: 1px solid #3c4146;
+        }
+
+        .hint-icon {
+            background: #f3ad18; color: black;
+            width: 20px; height: 20px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; margin-right: 15px; flex-shrink: 0;
+        }
+
+        /* Полоса загрузки (Квадратики) */
+        .progress-section {
+            padding: 10px 20px 20px;
+            background-color: #1e2226;
+        }
+
+        .progress-blocks {
+            display: flex; gap: 4px;
+        }
+
+        .block {
+            width: 15px; height: 10px;
+            background-color: #353a3f;
+            transition: background-color 0.1s;
+        }
+
+        .block.active {
+            background-color: #5d646b;
+            box-shadow: 0 0 5px rgba(255,255,255,0.2);
+        }
+
+        /* Анимация клика для звука */
+        #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 100; display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
+            background: rgba(0,0,0,0.8); z-index: 100;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
         }
-        #click-overlay span { color: #e5a824; letter-spacing: 5px; font-size: 20px; }
     </style>
 </head>
-<body onclick="startSequence()">
+<body onclick="startLoading()">
 
-    <div id="click-overlay"><span>НАЖМИТЕ ДЛЯ ПОДКЛЮЧЕНИЯ К СЕРВЕРУ</span></div>
-    
-    <audio id="ambient" loop><source src="music.mp3" type="audio/mpeg"></audio>
+    <div id="overlay"><span>CLICK TO INITIALIZE WORLD</span></div>
+    <audio id="music" loop><source src="csgo_loading.mp3" type="audio/mpeg"></audio>
 
-    <div class="background-wrap" id="bg"></div>
-    <div class="overlay-fx"></div>
+    <div class="loading-modal">
+        <div class="content-top">
+            <div class="map-preview">
+                <div class="csgo-logo">CS:GO</div>
+            </div>
+            
+            <div class="map-details">
+                <div class="mode-title">DE_DUST2</div>
+                <div class="description-text">
+                    <b>Terrorists:</b> Eliminate all Counter-Terrorists, plant the C4 bomb, and protect it until it explodes.
+                    <br><br>
+                    <b>Counter-Terrorists:</b> Eliminate all Terrorists before they plant the C4. If the bomb is planted, defuse it.
+                </div>
+            </div>
+        </div>
 
-    <div class="header-title">ВЫСАДКА НА МЕСТО ДИСЛОКАЦИИ</div>
+        <div class="bottom-hint">
+            <div class="hint-icon">i</div>
+            <div id="hint-text">Remember to check your corners! Flashbangs can be very effective.</div>
+        </div>
 
-    <div class="map-info">
-        <img src="map_preview.jpg" class="map-preview">
-        <div class="map-name" id="map-title">Завод</div>
-        <div class="map-description" id="hint-text">
-            Смена данных...
+        <div class="progress-section">
+            <div class="progress-blocks" id="blocks-container">
+                </div>
         </div>
     </div>
 
-    <div class="loading-section">
-        <div class="loading-status-top" id="loading-step">ЗАГРУЗКА КАРТЫ... (35%)</div>
-        <div class="progress-container"><div class="progress-bar"></div></div>
-        
-        <div class="loading-label">ЗАГРУЗКА</div>
-        <div id="timer" class="timer">00:00</div>
-        
-        <div class="back-btn">НАЗАД</div>
-    </div>
-
     <script>
-        function startSequence() {
-            document.getElementById('click-overlay').style.display = 'none';
-            document.getElementById('ambient').play();
+        // Создаем квадратики загрузки (как в CS:GO)
+        const container = document.getElementById('blocks-container');
+        const totalBlocks = 45;
+        for (let i = 0; i < totalBlocks; i++) {
+            const b = document.createElement('div');
+            b.className = 'block';
+            container.appendChild(b);
         }
 
-        // --- ТВОИ ПОДСКАЗКИ ---
+        const blocks = document.querySelectorAll('.block');
+        let currentBlock = 0;
+
+        function startLoading() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('music').play();
+            
+            // Анимация заполнения
+            const interval = setInterval(() => {
+                if (currentBlock < totalBlocks) {
+                    blocks[currentBlock].classList.add('active');
+                    currentBlock++;
+                } else {
+                    // Сброс для бесконечной визуализации
+                    blocks.forEach(b => b.classList.remove('active'));
+                    currentBlock = 0;
+                }
+            }, 150);
+        }
+
+        // Рандомные советы
         const hints = [
-            "Химический комбинат №16. Место ожесточенных столкновений между USEC и BEAR.",
-            "Будьте предельно внимательны в темноте. Фонарь может выдать вашу позицию.",
-            "Слушайте каждый шорох. Завод не прощает спешки."
+            "Remember to check your corners!",
+            "Flashbangs can be very effective when rushing.",
+            "Always buy a defuse kit if you can afford it.",
+            "Don't forget to communicate with your team.",
+            "Eco rounds are important for your economy."
         ];
-
-        let hIdx = 0;
-        const hintEl = document.getElementById('hint-text');
         
-        function rotateHints() {
-            hintEl.style.opacity = 0;
-            setTimeout(() => {
-                hIdx = (hIdx + 1) % hints.length;
-                hintEl.innerText = hints[hIdx];
-                hintEl.style.opacity = 1;
-            }, 500);
-        }
-        setInterval(rotateHints, 10000);
-        rotateHints(); // Первый запуск
-
-        // Таймер
-        const start = Date.now();
         setInterval(() => {
-            const now = Math.floor((Date.now() - start) / 1000);
-            const m = Math.floor(now / 60).toString().padStart(2, '0');
-            const s = (now % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
-        }, 1000);
+            document.getElementById('hint-text').innerText = hints[Math.floor(Math.random() * hints.length)];
+        }, 5000);
     </script>
 </body>
 </html>
