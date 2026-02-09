@@ -3,187 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Шрифт, похожий на Stratum2 (используется в CS:GO) */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap');
 
         body {
             margin: 0; padding: 0; overflow: hidden;
-            background-color: #1a1b1e;
-            /* Фоновый паттерн с оружием (замени на свою картинку, если есть) */
-            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://wallpaperaccess.com/full/1556041.jpg');
+            background-color: #121417;
+            /* Фоновый паттерн CS:GO */
+            background-image: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('https://wallpaperaccess.com/full/1556041.jpg');
             background-size: cover;
             font-family: 'Roboto', sans-serif;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; color: white;
+            text-transform: uppercase;
         }
 
-        /* Центральный контейнер */
+        /* Основное окно */
         .loading-modal {
-            width: 800px;
-            background-color: rgba(30, 34, 38, 0.95);
+            width: 850px;
+            background-color: #1e2226;
             border: 1px solid #3c4146;
             display: flex; flex-direction: column;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 80px rgba(0,0,0,0.9);
         }
 
-        /* Верхняя часть с лого и текстом */
-        .content-top {
+        .content-main {
             display: flex;
-            padding: 0;
-            border-bottom: 4px solid #1e2226;
+            height: 380px;
         }
 
-        /* Левая часть (Логотип и карта) */
-        .map-preview {
-            width: 50%;
-            height: 350px;
-            background: #23272b url('https://vignette.wikia.nocookie.net/cswiki/images/5/5e/Map_de_dust2.jpg') center/cover;
+        /* Секция с картой и Лого */
+        .map-section {
+            width: 55%;
+            background: #000 url('https://i.imgur.com/G4lU1Zp.jpg') center/cover;
             display: flex; justify-content: center; align-items: center;
             position: relative;
+            border-right: 1px solid #3c4146;
         }
 
-        .csgo-logo {
+        .logo-text {
             font-family: 'Orbitron', sans-serif;
-            font-size: 70px; font-weight: 700;
-            color: #f3ad18; /* Фирменный желтый */
-            text-shadow: 3px 3px 0px #222;
+            font-size: 80px; font-weight: 700;
+            color: #f3ad18;
+            text-shadow: 4px 4px 0px rgba(0,0,0,0.8);
+            letter-spacing: -2px;
         }
 
-        /* Правая часть (Описание режима) */
-        .map-details {
-            width: 50%; padding: 30px;
-            background-color: #2d3238;
+        /* Секция с описанием */
+        .info-section {
+            width: 45%; padding: 40px;
+            background-color: #23272b;
             box-sizing: border-box;
         }
 
-        .mode-title {
-            font-size: 24px; font-weight: 700;
-            letter-spacing: 2px; border-bottom: 1px solid #4a4f55;
-            padding-bottom: 10px; margin-bottom: 15px;
+        .map-title {
+            font-size: 26px; font-weight: 700;
+            color: #fff; border-bottom: 1px solid #4a4f55;
+            padding-bottom: 10px; margin-bottom: 20px;
+            letter-spacing: 1px;
         }
 
-        .description-text {
-            font-size: 14px; line-height: 1.6; color: #cbd1d6;
+        .map-desc {
+            font-size: 13px; line-height: 1.8; color: #a0a5aa;
+            text-transform: none; /* Описание обычно обычным текстом */
         }
 
-        /* Нижняя полоса с советом */
-        .bottom-hint {
-            background-color: #1e2226;
-            padding: 15px 20px;
+        /* Полоса совета */
+        .hint-bar {
+            background-color: #16191d;
+            padding: 18px 25px;
             display: flex; align-items: center;
             font-size: 13px; border-top: 1px solid #3c4146;
         }
 
         .hint-icon {
-            background: #f3ad18; color: black;
+            background: #f3ad18; color: #000;
             width: 20px; height: 20px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            font-weight: bold; margin-right: 15px; flex-shrink: 0;
+            font-weight: 900; margin-right: 15px; font-size: 14px;
         }
 
-        /* Полоса загрузки (Квадратики) */
-        .progress-section {
-            padding: 10px 20px 20px;
-            background-color: #1e2226;
+        /* Загрузочные блоки (квадраты) */
+        .loader-footer {
+            padding: 15px 25px 25px;
+            background-color: #16191d;
         }
 
-        .progress-blocks {
-            display: flex; gap: 4px;
-        }
+        .blocks-row { display: flex; gap: 5px; }
 
         .block {
-            width: 15px; height: 10px;
-            background-color: #353a3f;
-            transition: background-color 0.1s;
+            width: 14px; height: 10px;
+            background-color: #2a2e33;
         }
 
-        .block.active {
-            background-color: #5d646b;
-            box-shadow: 0 0 5px rgba(255,255,255,0.2);
+        .block.fill {
+            background-color: #7a828a;
+            box-shadow: 0 0 8px rgba(255,255,255,0.1);
         }
 
-        /* Анимация клика для звука */
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 100;
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-        }
     </style>
 </head>
-<body onclick="startLoading()">
+<body>
 
-    <div id="overlay"><span></span></div>
-    <audio id="music" loop><source src="csgo_loading.mp3" type="audio/mpeg"></audio>
+    <audio id="cs-music" loop autoplay>
+        <source src="csgo_loading.mp3" type="audio/mpeg">
+    </audio>
 
     <div class="loading-modal">
-        <div class="content-top">
-            <div class="map-preview">
-                <div class="csgo-logo">CS:GO</div>
+        <div class="content-main">
+            <div class="map-section">
+                <div class="logo-text">CS:GO</div>
             </div>
             
-            <div class="map-details">
-                <div class="mode-title">DE_DUST2</div>
-                <div class="description-text">
-                    <b>uudfudsufsg:</b> Eliminate all Counter-Terrorists, plant the C4 bomb, and protect it until it explodes.
+            <div class="info-section">
+                <div class="map-title" id="map-name">DE_DUST2</div>
+                <div class="map-desc">
+                    <b>Counter-Terrorists:</b> Prevent the Terrorists from bombing the chemical weapon crates. 
                     <br><br>
-                    <b>adsdasfgadfs:</b> Eliminate all Terrorists before they plant the C4. If the bomb is planted, defuse it.
+                    Team members must work together to cover both bomb sites and defuse any planted explosives.
                 </div>
             </div>
         </div>
 
-        <div class="bottom-hint">
-            <div class="hint-icon">i</div>
-            <div id="hint-text">лан похуй.</div>
+        <div class="hint-bar">
+            <div class="hint-icon">!</div>
+            <div id="hint-text">СОВЕТ: ПРОВЕРЯЙТЕ УГЛЫ ПРИ ВХОДЕ В ТЕМНЫЕ ПОМЕЩЕНИЯ.</div>
         </div>
 
-        <div class="progress-section">
-            <div class="progress-blocks" id="blocks-container">
-                </div>
+        <div class="loader-footer">
+            <div class="blocks-row" id="loader"></div>
         </div>
     </div>
 
     <script>
-        // Создаем квадратики загрузки (как в CS:GO)
-        const container = document.getElementById('blocks-container');
-        const totalBlocks = 45;
-        for (let i = 0; i < totalBlocks; i++) {
-            const b = document.createElement('div');
+        // Генерация блоков загрузки
+        const loader = document.getElementById('loader');
+        const count = 48;
+        for(let i=0; i<count; i++) {
+            let b = document.createElement('div');
             b.className = 'block';
-            container.appendChild(b);
+            loader.appendChild(b);
         }
 
-        const blocks = document.querySelectorAll('.block');
-        let currentBlock = 0;
+        const allBlocks = document.querySelectorAll('.block');
+        let idx = 0;
 
-        function startLoading() {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('music').play();
-            
-            // Анимация заполнения
-            const interval = setInterval(() => {
-                if (currentBlock < totalBlocks) {
-                    blocks[currentBlock].classList.add('active');
-                    currentBlock++;
-                } else {
-                    // Сброс для бесконечной визуализации
-                    blocks.forEach(b => b.classList.remove('active'));
-                    currentBlock = 0;
-                }
-            }, 150);
+        // Анимация «бегающих» квадратов
+        function animate() {
+            allBlocks[idx].classList.add('fill');
+            idx++;
+            if(idx >= count) {
+                setTimeout(() => {
+                    allBlocks.forEach(b => b.classList.remove('fill'));
+                    idx = 0;
+                    animate();
+                }, 1000);
+            } else {
+                setTimeout(animate, 80);
+            }
         }
+        animate();
 
-        // Рандомные советы
-        const hints = [
-            "Remember to check your corners!",
-            "Flashbangs can be very effective when rushing.",
-            "Always buy a defuse kit if you can afford it.",
-            "Don't forget to communicate with your team.",
-            "Eco rounds are important for your economy."
-        ];
-        
-        setInterval(() => {
-            document.getElementById('hint-text').innerText = hints[Math.floor(Math.random() * hints.length)];
-        }, 5000);
+        // Попытка автоплея при первом же клике в любом месте
+        window.onclick = () => {
+            document.getElementById('cs-music').play();
+        };
     </script>
 </body>
 </html>
